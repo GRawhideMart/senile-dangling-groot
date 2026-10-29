@@ -1,0 +1,44 @@
+# ==============================================================================
+# Git Ignore Configuration - Industrial SDG Pipeline
+# ==============================================================================
+
+# Explicit instruction: do not track GEMINI.md in git repository
+GEMINI.md
+
+# Manual snapshots and checkpoints (version control replaces manual backups)
+backups/
+
+# Intermediate and scratch test directories
+test_out_dir/
+
+# Runtime generation outputs
+output/
+renders/
+
+# Heavy floating-point EXR render files (prevent Git LFS / repository bloat)
+*.exr
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# Blender backup and crash files
+*.blend1
+*.blend2
+*.blend@
+*.crash.txt
+
+# OS and Editor artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/

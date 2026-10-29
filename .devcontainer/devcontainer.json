@@ -1,0 +1,28 @@
+{
+    "name": "Industrial SDG Pipeline",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                // Force VS Code to use Blender's internal Python as the default interpreter
+                "python.defaultInterpreterPath": "/usr/local/bin/5.1/python/bin/python3.13",
+                
+                // Add Blender's internal scripts to the path so Pylance understands them
+                "python.analysis.extraPaths": [
+                    "/usr/local/bin/5.1/scripts/modules"
+                ],
+                
+                // Standardize formatting
+                "editor.formatOnSave": true
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "JacquesLucke.blender-development"
+            ]
+        }
+    },
+    "remoteUser": "root"
+}
