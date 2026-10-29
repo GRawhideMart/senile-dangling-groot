@@ -34,27 +34,26 @@ The generator dynamically alters indoor and outdoor industrial contexts, camera 
 ## Core Capabilities
 
 - **Procedural Package Generation (`src/generators/box.py`)**:
-  - Realistic cardboard shaders procedurally synthesized in Cycles nodes with randomized warm brown base tones.
-  - Procedural shipping labels created using thresholded Voronoi textures.
-  - Procedural high-frequency noise simulating printed text and barcodes.
-  - Realistic surface imperfections via randomized bevel modifiers and bump mapping.
-  - Dynamic deformation and dents using subdivision surface and displacement cloud textures.
-  - Variable scale, aspect ratio, and 90-degree rotations.
+  - **Geometric Scaling**: Randomized dimensions $`s_x, s_y \in [0.6, 0.9]\text{ m}`$ and height $`s_z \in [0.1, 0.8]\text{ m}`$.
+  - **Procedural Cardboard Shader**: Synthesized Cycles shader with base brown color sampled in HSV space ($`H \in [0.06, 0.10]`$, $`S \in [0.40, 0.60]`$, $`V \in [0.40, 0.60]`$).
+  - **Shipping Labels & Barcodes**: Voronoi noise thresholding for rectangular label patches combined with high-frequency noise textures for simulated printed text and barcodes.
+  - **Surface Imperfections & Damage**: Bevel modifier with edge width $`w \in [2, 10]\text{ mm}`$ and angle limit $`\theta_{\text{bevel}} = 30^{\circ}`$, coupled with displacement surface warping ($`d_{\text{warp}} \in [5, 15]\text{ mm}`$).
+  - **Orientation Randomization**: In-plane yaw rotation $`\psi \in [0, 2\pi)`$ and discrete tilt angles $`\psi_{\text{tilt}} \in \{0^{\circ}, 90^{\circ}, 180^{\circ}\}`$.
 
 - **Domain & Environment Randomization (`src/generators/environment.py`)**:
-  - **Indoor Warehouses**: Procedural multi-slat wooden pallets, concrete flooring, steel pillars, and ceiling beams illuminated by randomized area lighting.
-  - **Outdoor Loading Docks**: Dynamic sky texture model (`MULTIPLE_SCATTERING`) with randomized sun elevation and azimuth, coupled with grass/dirt terrain shaders.
-  - **Camera Randomization**: Spherical coordinate positioning (azimuth $0^\circ$–$360^\circ$, elevation $15^\circ$–$50^\circ$, radius $3.5$–$5.5\text{ m}$) targeting the scene origin with automatic tracking quaternion calculation.
+  - **Indoor Warehouses**: Procedural multi-slat wooden pallets, concrete flooring with surface roughness $`R_{\text{floor}} \in [0.02, 0.06]`$, structural steel pillars, and ceiling beams illuminated by randomized overhead area lighting ($`E \in [300, 600]\text{ W}`$ at height $`z \in [4, 6]\text{ m}`$).
+  - **Outdoor Loading Docks**: Dynamic sky scattering model (`MULTIPLE_SCATTERING`) with sun azimuth $`\phi_{\text{sun}} \in [0^{\circ}, 360^{\circ}]`$, sun elevation $`\theta_{\text{sun}} \in [15^{\circ}, 45^{\circ}]`$, and solar intensity $`I_{\text{sun}} \in [0.002, 0.005]`$, paired with grass and dirt terrain shaders.
+  - **Camera Spherical Randomization**: Camera position $`\mathbf{p}_{\text{cam}} = (r\cos\theta\cos\phi, \; r\cos\theta\sin\phi, \; r\sin\theta + 0.5)^{\top}`$ targeting scene origin $`\mathbf{p}_0 = (0, 0, 0)^{\top}`$, with azimuth $`\phi \in [0^{\circ}, 360^{\circ}]`$, elevation $`\theta \in [15^{\circ}, 50^{\circ}]`$, and radius $`r \in [3.5\text{ m}, 5.5\text{ m}]`$.
 
 - **Visual Distractors & Clutter (`src/generators/clutter.py`)**:
-  - Spawns randomized primitive objects (cubes, cylinders, spheres, toruses) distributed in an outer ring around the target object.
-  - Random colors, roughness values, and rotations with segmentation pass index `0` to ensure they are excluded from the target package's mask.
+  - Spawns $`N \in [5, 12]`$ primitive objects (cubes, cylinders, spheres, toruses) distributed in a radial ring at position $`\mathbf{p}_{\text{clutter}} = (d\cos\alpha, \; d\sin\alpha, \; z_0)^{\top}`$, with radius $`d \in [1.5\text{ m}, 4.0\text{ m}]`$, polar angle $`\alpha \in [0, 2\pi)`$, and height $`z_0 \in [0.05\text{ m}, 0.8\text{ m}]`$.
+  - Randomized distractor scale $`s \in [0.1\text{ m}, 0.6\text{ m}]`$ and materials with segmentation pass index $0$ to guarantee exclusion from target masks.
 
 - **Multi-Modal Ground Truth Extraction**:
-  - **RGB**: High-fidelity Cycles path-traced rendering.
-  - **Depth Map (EXR)**: Single-channel 32-bit float (`Z`) depth map extracted through Blender's Compositor node tree.
-  - **Amodal Segmentation Mask**: Mathematically computed convex hull projection rendered to an 8-bit binary PNG (`0` or `255`).
-  - **2D/3D Bounding Boxes (`src/core/bounding_box.py`)**: World-space 8-corner 3D bounding box evaluated from the scene depsgraph, projected through camera intrinsics/extrinsics to image pixel coordinates, exported as coordinates and overlay images.
+  - **RGB Image**: High-fidelity Cycles path-traced rendering with 64 samples per pixel at 1024 × 1024 resolution.
+  - **Depth Map (EXR)**: Single-channel 32-bit floating-point depth buffer $`Z \in \mathbb{R}^{H \times W}`$ extracted via Compositor output nodes.
+  - **2D/3D Bounding Box Extraction (`src/core/bounding_box.py`)**: Transforms 8 object-space bounding box vertices into world coordinates using evaluated depsgraph matrices ($`\mathbf{v}_{\text{world}} = \mathbf{M} \mathbf{v}_{\text{local}}`$), projects them to 2D pixel coordinates $`(x, y) \in [0, W] \times [0, H]`$ via camera perspective projection, and extracts the tight axis-aligned bounding box $`[x_{\min}, y_{\min}, x_{\max}, y_{\max}]`$.
+  - **Amodal Segmentation Mask**: Computes the 2D convex hull $`\mathcal{H} = \text{Conv}(\{(x_i, y_i)\}_{i=1}^8)`$ from the projected corners and rasterizes a pristine binary amodal mask $`\mathcal{M}(u, v) \in \{0, 255\}`$.
 
 ---
 
